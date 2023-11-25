@@ -38,6 +38,8 @@ The weekday in line 108 starts at 0 (Monday) and goes to  (Sunday). This is the 
 
 The what3words API key in line 184 lets you use the what3words API to convert w3w addresses into clickable links (with a confirmation of the rough area).
 
+Note that it defaults to Venturer-section events but this can be changed fairly easily if you know what you're doing.
+
 ## Features
 
 Run the script every day at a designated time (use a cronjob like `0 9 * * *`)
