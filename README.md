@@ -13,6 +13,8 @@ If you didn't, but you know what you're doing, you can probably hack something t
 
 Anyway, what's Pathfinder? It's a Python script that checks your Terrain calendar for events in your unit on the current day and, if there's something, it'll post information to Jandi via a webhook. Additionally, by specifying your weekly meeting day (such as Thursday, the default), the bot can confirm if there is no event in Terrain to users on Jandi.
 
+Please note: This is not a foolproof application. It does not handle errors well. It relies somewhat on humans not creating edge cases. Please do not rely on it. It's just a convenience.
+
 ## Dependencies
 
 ```
