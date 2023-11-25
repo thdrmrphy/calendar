@@ -93,6 +93,36 @@ def message_meeting(content, wh_url):
     else:
         print("Failed to send message to Jandi. Error:", response.text)    
 
+def locationw3w(loc_string):
+    # Find w3w location strings
+    def findPossible3wa(text):
+        regex_search = "[^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}"
+        return re.findall(regex_search, text, flags=re.UNICODE)
+
+    # Define API key
+    api = what3words.Geocoder("API KEY")
+
+    possible = findPossible3wa(loc_string)
+
+    if possible:
+        # Convert w3w string to link with confirmation location
+        json = api.convert_to_coordinates(possible[0])
+        markdown_link = f"[///{json['words']}](https://w3w.co/{json['words']})"
+        w3w = f"{markdown_link} (near {json['nearestPlace']})"
+        loc_string = loc_string.replace("///", "")
+        loc_string = loc_string.replace(possible[0], w3w)
+
+    return loc_string
+
+def format_list(items):
+    # List names in a human-friendly way with correct English syntax
+    if len(items) == 1:
+        return items[0]
+    elif len(items) > 1:
+        return ", ".join(items)
+    else:
+        return ""
+
 # Define login and webhook details
 terrain_username = "USERNAME"
 terrain_password = "PASSWORD"
@@ -173,15 +203,6 @@ challenge = {
 }
 challenge_cleaned = challenge.get(challenge_area, challenge_area)
 
-def format_list(items):
-    # List names in a human-friendly way with correct English syntax
-    if len(items) == 1:
-        return items[0]
-    elif len(items) > 1:
-        return ", ".join(items)
-    else:
-        return ""
-
 # Apply above function to leader and assistant names
 lead_string = format_list(leader_names)
 assistant_string = format_list(assistant_names)
@@ -197,27 +218,6 @@ if len(assistant_names) > 0:
     assistant_cleaned = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
 else:
     assistant_cleaned = "No designated assistant"
-
-def locationw3w(loc_string):
-    # Find w3w location strings
-    def findPossible3wa(text):
-        regex_search = "[^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}"
-        return re.findall(regex_search, text, flags=re.UNICODE)
-
-    # Define API key
-    api = what3words.Geocoder("API KEY")
-
-    possible = findPossible3wa(loc_string)
-
-    if possible:
-        # Convert w3w string to link with confirmation location
-        json = api.convert_to_coordinates(possible[0])
-        markdown_link = f"[///{json['words']}](https://w3w.co/{json['words']})"
-        w3w = f"{markdown_link} (near {json['nearestPlace']})"
-        loc_string = loc_string.replace("///", "")
-        loc_string = loc_string.replace(possible[0], w3w)
-
-    return loc_string
 
 # Convert w3w locations to clickable links
 location = locationw3w(location)
