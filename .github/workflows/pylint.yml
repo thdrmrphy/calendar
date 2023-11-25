@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.8"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
+        pip install pylint --upgrade
     - name: Analysing the code with pylint
       run: |
-        pylint $($(python -c "import sys; print(' '.join(sys.path))") | grep -E '/python[0-9.]+/') || true
+        pylint --output-format=text .
