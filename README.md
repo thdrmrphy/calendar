@@ -15,6 +15,10 @@ Anyway, what's Pathfinder? It's a Python script that checks your Terrain calenda
 
 Please note: This is not a foolproof application. It does not handle errors well. It relies somewhat on humans not creating edge cases. Please do not rely on it. It's just a convenience.
 
+Having said that, please feel more than free to adapt it to other webhook integrations, create issues, pull requests, forks, etc. I'd love to see where it could go.
+
+Finally, the Scouts | Terrain API should not be abused. Don't waste a nonprofit's money and create issues for other users.
+
 ## Dependencies
 
 ```
