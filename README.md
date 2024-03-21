@@ -1,6 +1,11 @@
-# Pathfinder
+# Calendar
 
 ## A Jandi-Terrain webhook integration
+
+### Currently under redevelopment.
+
+---
+
 **Do you use Jandi for your Scouting communications?**
 
 **Do you have a Scouts | Terrain account?**
