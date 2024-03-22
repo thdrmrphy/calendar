@@ -1,0 +1,13 @@
+{
+    "terrain_username": "abc-123456",
+    "terrain_password": "password",
+    "youth_wh_url": "https://wh.jandi.com/connect-api/webhook/placeholder",
+    "parent_wh_url": "https://wh.jandi.com/connect-api/webhook/placeholder",
+    "timezone": "Australia/Sydney",
+    "section": "venturer",
+    "meeting_weekday": null,
+    "what3words_api_key": "ABCDEFGH",
+    "name_replacements": {
+        "John Smith": "Fred Smith"
+    }
+}
