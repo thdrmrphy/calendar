@@ -4,7 +4,8 @@ import datetime
 import pytz
 import re
 import what3words
-from datetime import date, datetime, timedelta
+import os
+from datetime import datetime, timezone, timedelta
 
 def generate_session(username: str, password: str) -> requests.Session:
     # Logs in the requests session to Terrain and attaches the authentication header
@@ -39,42 +40,37 @@ def generate_session(username: str, password: str) -> requests.Session:
 
     return connection
 
-def get_member(connection: requests.Session) -> str:
-    # Get the Terrain UUID for your member account
+def get_member_id(connection: requests.Session) -> str:
     url = "https://members.terrain.scouts.com.au/profiles"
     data = connection.get(url).json()
     return data["profiles"][0]["member"]["id"]
 
-def format_datetime(dt):
-    # Format datetime as 12-hour time without seconds
-    return dt.strftime("%-I:%M %p")
-
 def get_events(connection: requests.Session, member: str) -> list:
-    # Check for upcoming events (default lookahead is 1 day)
-    current_date = datetime.now().date()
-    tomorrow_date = current_date + timedelta(days=1)
-    start_datetime = current_date.isoformat()
-    end_datetime = tomorrow_date.isoformat()
+    start_datetime = datetime.now().date().isoformat()
+    end_datetime = datetime.now().date() + timedelta(days=1)
+    end_datetime = end_datetime.isoformat()
     url = f"https://events.terrain.scouts.com.au/members/{member}/events?start_datetime={start_datetime}&end_datetime={end_datetime}"
     data = connection.get(url).json()
     print (json.dumps(data))
     return data
 
 def get_event_info(connection: requests.Session, id: str):
-    # Get info on an event given its UUID
     url = f"https://events.terrain.scouts.com.au/events/{id}"
     data = connection.get(url).json()
     return data
 
-def message_none(wh_url):
-    # Post Jandi message confirming no meeting
-    webhook_url = wh_url
+def message_none(wh_url, terrain_mention):
     headers = {'Content-Type': 'application/json'}
-    content = {
-        "body": "No meeting tonight, according to [Scouts | Terrain](terrain.scouts.com.au/programming)",
-    }
+    if terrain_mention:
+        content = {
+            "body": "No meeting tonight, according to [Scouts | Terrain](terrain.scouts.com.au/programming)",
+        }
+    else:
+        content = {
+            "body": "No Venturer meeting tonight, according to our online calendar.\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
+        }
     data = json.dumps(content)
-    response = requests.post(webhook_url, headers=headers, data=data)
+    response = requests.post(wh_url, headers=headers, data=data)
 
     if response.status_code == 200:
         print("Message sent successfully to Jandi.")
@@ -82,158 +78,165 @@ def message_none(wh_url):
         print("Failed to send message to Jandi. Error:", response.text)
 
 def message_meeting(content, wh_url):
-    # Post Jandi message with event details
-    webhook_url = wh_url
     headers = {'Content-Type': 'application/json'}
     data = json.dumps(content)
-    response = requests.post(webhook_url, headers=headers, data=data)
+    response = requests.post(wh_url, headers=headers, data=data)
 
     if response.status_code == 200:
         print("Message sent successfully to Jandi.", json.dumps(content))
     else:
         print("Failed to send message to Jandi. Error:", response.text)    
 
+def replace_names(members):
+    names = [member['first_name'] + ' ' + member['last_name'] for member in members]
+    
+    updated_names = []
+    for name in names:
+        updated_name = name_replacements.get(name, name)
+        updated_names.append(updated_name)
+
+    return updated_names
+
+def format_challenge(challenge_area):
+    challenge = {
+        "community": "🌏 Community Challenge",
+        "outdoors": "🏕️ Outdoor Challenge",
+        "creative": "💡 Creative Challenge",
+        "personal_growth": "🌱 Personal Growth Challenge",
+    }
+    formatted_challenge = challenge.get(challenge_area, challenge_area)
+
+    return formatted_challenge
+
+def fancify_leads(leader_names):
+    if len(leader_names) > 0:
+        lead_string = "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names))
+    else:
+        lead_string = "No designated leader"
+    return lead_string
+
+def fancify_assists(assistant_names):
+    if len(assistant_names) > 0:
+        assistant_string = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
+    else:
+        assistant_string = "No designated assistant"
+    return assistant_string
+
 def locationw3w(loc_string):
-    # Find w3w location strings
-    def findPossible3wa(text):
+    def find_possible_3wa(text):
         regex_search = "[^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}"
         return re.findall(regex_search, text, flags=re.UNICODE)
 
-    # Define API key
-    api = what3words.Geocoder("API KEY")
+    api = what3words.Geocoder(what3words_api_key)
 
-    possible = findPossible3wa(loc_string)
+    possible = find_possible_3wa(loc_string)
 
     if possible:
-        # Convert w3w string to link with confirmation location
-        json = api.convert_to_coordinates(possible[0])
-        markdown_link = f"[///{json['words']}](https://w3w.co/{json['words']})"
-        w3w = f"{markdown_link} (near {json['nearestPlace']})"
+        try:
+            json = api.autosuggest(possible[0])
+        except:
+            loc_string = loc_string.replace(possible[0], "(what3words error)")
+            return loc_string
+        markdown_link = f"[///{json['suggestions'][0]['words']}](https://w3w.co/{json['suggestions'][0]['words']})"
+        if json['suggestions'][0]['country'] == 'AU':
+            w3w_nearest = f"{markdown_link} (near {json['suggestions'][0]['nearestPlace']})"
+        else:
+            w3w_nearest = f"{markdown_link} (near {json['suggestions'][0]['nearestPlace']} - this may be incorrect!)"
         loc_string = loc_string.replace("///", "")
-        loc_string = loc_string.replace(possible[0], w3w)
+        loc_string = loc_string.replace(possible[0], w3w_nearest)
 
     return loc_string
 
-def format_list(items):
-    # List names in a human-friendly way with correct English syntax
-    if len(items) == 1:
-        return items[0]
-    elif len(items) > 1:
-        return ", ".join(items)
-    else:
-        return ""
+script_dir = os.path.dirname(os.path.abspath(__file__))
+filename = 'config.json'
+filepath = os.path.join(script_dir, filename)
 
-# Define login and webhook details
-terrain_username = "USERNAME"
-terrain_password = "PASSWORD"
-wh_url = "WEBHOOK URL"
+with open(filepath) as config:
+    config = json.load(config)
+
+terrain_username = config['terrain_username']
+terrain_password = config['terrain_password']
+youth_wh_url = config['youth_wh_url']
+parent_wh_url = config['parent_wh_url']
+local_timezone = config['timezone']
+section = config['section']
+meeting_weekday = config['meeting_weekday']
+what3words_api_key = config['what3words_api_key']
+name_replacements = config['name_replacements']
+
 session = generate_session(terrain_username, terrain_password)
-member = get_member(session)
-event_list = get_events(session, member)
 
-# Set up search for events
-venturer_event_found = False 
-
-# Find Venturer Unit events
+event_list = get_events(session, get_member_id(session))
 if 'results' in event_list:
     for event in event_list['results']:
-        if event['section'] == 'venturer' and event['invitee_type'] == 'unit':
-            meeting_id = event['id']
-            venturer_event_found = True
-            break  # Exit the loop after finding the first 'venturer' event
+        if event['section'] == f'{section}' and event['invitee_type'] == 'unit':
+            event_id = event['id']
+            break
+        else:
+            if datetime.now().weekday() == meeting_weekday:
+                message_none(youth_wh_url, True)
+                message_none(parent_wh_url, False)
+                quit()
+            elif meeting_weekday is not None and 0 <= meeting_weekday <= 6:
+                print("No events today.")
+                quit()
+            else:
+                print("No events today, and no regular weekday set.")
+                quit()
+else:
+    print("Error getting event list")
+    quit()
 
-# If no event is found, check whether there should be one and message if there should
-if not venturer_event_found:
-    if datetime.now().weekday() == 3:
-        message_none(wh_url)
-        quit()
-    else:
-        print("No events today")
-        quit()
+event_info = get_event_info(session, event_id)
 
-# Get more info on a found event
-data = get_event_info(session, meeting_id)
+local_timezone = pytz.timezone(local_timezone)
+start_datetime_local = datetime.fromisoformat(event_info['start_datetime']).astimezone(local_timezone)
+end_datetime_local = datetime.fromisoformat(event_info['end_datetime']).astimezone(local_timezone)
 
-# Parse event title
-title = data['title']
+if start_datetime_local.date() != datetime.now(local_timezone).date():
+    print("Event returned does not begin today in local timezone")
+    quit()
 
-# Parse leader names
-leader_members = data['attendance']['leader_members']
-leader_names = [member['first_name'] + ' ' + member['last_name'] for member in leader_members]
+title = event_info['title']
 
-# Parse assistant names
-assistant_members = data['attendance']['assistant_members']
-assistant_names = [member['first_name'] + ' ' + member['last_name'] for member in assistant_members]
+location = locationw3w(event_info['location'])
 
-# Parse location and challenge area
-location = data['location']
-challenge_area = data['challenge_area']
+formatted_challenge = format_challenge(event_info['challenge_area'])
 
-# Define timezone
-timezone = pytz.timezone('Australia/Sydney')
+if start_datetime_local.date() != end_datetime_local.date():
+    formatted_start_time = start_datetime_local.strftime("%-I:%M %p, %A %-d %B")
+    formatted_end_time = end_datetime_local.strftime("%-I:%M %p, %A %-d %B")
+else:
+    formatted_start_time = start_datetime_local.strftime("%-I:%M %p")
+    formatted_end_time = end_datetime_local.strftime("%-I:%M %p")
 
-# Parse start and end datetimes as UTC and convert to specified timezone
-for event in data:
-    start_datetime_str = data['start_datetime']
-    end_datetime_str = data['end_datetime']
-
-    # Parse the datetimes as UTC
-    start_datetime_utc = datetime.fromisoformat(start_datetime_str)
-    end_datetime_utc = datetime.fromisoformat(end_datetime_str)
-
-    # Convert to timezone
-    start_datetime_sydney = start_datetime_utc.astimezone(timezone)
-    end_datetime_sydney = end_datetime_utc.astimezone(timezone)
-
-    # Format datetime as 12-hour time without seconds
-    formatted_start_time = format_datetime(start_datetime_sydney)
-    formatted_end_time = format_datetime(end_datetime_sydney)
-
-# Parse description
-if 'description' in data:
-    description = data['description']
+if 'description' in event_info:
+    description = event_info['description']
 else: description = "No description given"
 
-# Convert challenge area to human-readable string
-challenge = {
-    "community": "🌏 Community Challenge",
-    "outdoors": "🏕️ Outdoor Challenge",
-    "creative": "💡 Creative Challenge",
-    "personal_growth": "🌱 Personal Growth Challenge",
-}
-challenge_cleaned = challenge.get(challenge_area, challenge_area)
+lead_string = fancify_leads(replace_names(event_info['attendance']['leader_members']))
+assistant_string = fancify_assists(replace_names(event_info['attendance']['assistant_members']))
 
-# Apply above function to leader and assistant names
-lead_string = format_list(leader_names)
-assistant_string = format_list(assistant_names)
-
-# Output leader names (or lack thereof)
-if len(leader_names) > 0:
-    lead_cleaned = "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names))
-else:
-    lead_cleaned = "No designated leader"
-
-# Output assistant names (or lack thereof)
-if len(assistant_names) > 0:
-    assistant_cleaned = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
-else:
-    assistant_cleaned = "No designated assistant"
-
-# Convert w3w locations to clickable links
-location = locationw3w(location)
-
-# Define webhook post content using parsed information from Terrain
-content = {
+youth_message_content = {
     "body": "Upcoming event from Scouts | Terrain",
-    "connectColor": "#00C473",
+    "connectColor": "#99002b",
     "connectInfo": [{
         "title": title,
-        "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{challenge_cleaned}\n\n{description}\n\n{lead_cleaned}\n\n{assistant_cleaned}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
+        "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}\n\n{lead_string}\n\n{assistant_string}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
     }]
 }
 
-# Post event information on Jandi (main function)
-message_meeting(content, wh_url)
+parent_message_content = {
+    "body": "Upcoming event for Venturer Scouts",
+    "connectColor": "#99002b",
+    "connectInfo": [{
+        "title": title,
+        "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}"
+    }]
+}
 
-# Print webhook post for debugging
-print(content)
+message_meeting(youth_message_content, youth_wh_url)
+message_meeting(parent_message_content, parent_wh_url)
+
+print(youth_message_content)
+print(parent_message_content)
