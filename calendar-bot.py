@@ -8,8 +8,6 @@ import os
 from datetime import datetime, timezone, timedelta
 
 def generate_session(username: str, password: str) -> requests.Session:
-    # Logs in the requests session to Terrain and attaches the authentication header
-
     connection = requests.Session()
 
     body = {
@@ -29,11 +27,9 @@ def generate_session(username: str, password: str) -> requests.Session:
     url = "https://cognito-idp.ap-southeast-2.amazonaws.com/"
     resp = connection.post(url, json=body, headers=headers)
 
-    # Ensure credentials are correct
     if resp.status_code == 400:
         raise RuntimeError(resp.json())
 
-    # Attach the auth header & return session
     connection.headers.update({
         "Authorization": resp.json()["AuthenticationResult"]["IdToken"]
     })
@@ -67,7 +63,7 @@ def message_none(wh_url, terrain_mention):
         }
     else:
         content = {
-            "body": "No Venturer meeting tonight, according to our online calendar.\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
+            "body": f"No {section_fancy} meeting tonight, according to our online calendar.\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
         }
     data = json.dumps(content)
     response = requests.post(wh_url, headers=headers, data=data)
@@ -164,6 +160,15 @@ meeting_weekday = config['meeting_weekday']
 what3words_api_key = config['what3words_api_key']
 name_replacements = config['name_replacements']
 
+section_names = {
+    "joey": "Joey Scout",
+    "cub": "Cub Scout",
+    "scout": "Scout",
+    "venturer": "Venturer Scout",
+    "rover": "Rover Scout"
+}
+section_fancy = section_names.get(section, section)
+
 session = generate_session(terrain_username, terrain_password)
 
 event_list = get_events(session, get_member_id(session))
@@ -227,7 +232,7 @@ youth_message_content = {
 }
 
 parent_message_content = {
-    "body": "Upcoming event for Venturer Scouts",
+    "body": f"Upcoming event for {section_fancy}s",
     "connectColor": "#99002b",
     "connectInfo": [{
         "title": title,
