@@ -4,10 +4,10 @@ import json
 import re
 import os
 from datetime import datetime, timedelta
+
 import requests
 import pytz
 import what3words
-
 
 def generate_session(username: str, password: str) -> requests.Session:
     connection = requests.Session()
