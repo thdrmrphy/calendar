@@ -1,11 +1,13 @@
-import requests
+# Python script to post event information from Scouts | Terrain on JANDI topics.
+
 import json
-import datetime
-import pytz
 import re
-import what3words
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
+import requests
+import pytz
+import what3words
+
 
 def generate_session(username: str, password: str) -> requests.Session:
     connection = requests.Session()
@@ -25,7 +27,7 @@ def generate_session(username: str, password: str) -> requests.Session:
     }
 
     url = "https://cognito-idp.ap-southeast-2.amazonaws.com/"
-    resp = connection.post(url, json=body, headers=headers)
+    resp = connection.post(url, json=body, headers=headers, timeout=10)
 
     if resp.status_code == 400:
         raise RuntimeError(resp.json())
@@ -38,22 +40,22 @@ def generate_session(username: str, password: str) -> requests.Session:
 
 def get_member_id(connection: requests.Session) -> str:
     url = "https://members.terrain.scouts.com.au/profiles"
-    data = connection.get(url).json()
-    return data["profiles"][0]["member"]["id"]
+    member_data = connection.get(url).json()
+    return member_data["profiles"][0]["member"]["id"]
 
 def get_events(connection: requests.Session, member: str) -> list:
     start_datetime = datetime.now().date().isoformat()
     end_datetime = datetime.now().date() + timedelta(days=1)
     end_datetime = end_datetime.isoformat()
     url = f"https://events.terrain.scouts.com.au/members/{member}/events?start_datetime={start_datetime}&end_datetime={end_datetime}"
-    data = connection.get(url).json()
-    print (json.dumps(data))
-    return data
+    event_data = connection.get(url).json()
+    print(json.dumps(event_data))
+    return event_data
 
 def get_event_info(connection: requests.Session, id: str):
     url = f"https://events.terrain.scouts.com.au/events/{id}"
-    data = connection.get(url).json()
-    return data
+    event_data = connection.get(url).json()
+    return event_data
 
 def message_none(wh_url, terrain_mention):
     headers = {'Content-Type': 'application/json'}
@@ -65,8 +67,8 @@ def message_none(wh_url, terrain_mention):
         content = {
             "body": f"**No {section_fancy} meeting tonight, according to our online calendar.**\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
         }
-    data = json.dumps(content)
-    response = requests.post(wh_url, headers=headers, data=data)
+    message_data = json.dumps(content)
+    response = requests.post(wh_url, headers=headers, data=message_data, timeout=10)
 
     if response.status_code == 200:
         print("Message sent successfully to Jandi.")
@@ -75,17 +77,16 @@ def message_none(wh_url, terrain_mention):
 
 def message_meeting(content, wh_url):
     headers = {'Content-Type': 'application/json'}
-    data = json.dumps(content)
-    response = requests.post(wh_url, headers=headers, data=data)
+    message_data = json.dumps(content)
+    response = requests.post(wh_url, headers=headers, data=message_data, timeout=10)
 
     if response.status_code == 200:
         print("Message sent successfully to Jandi.", json.dumps(content))
     else:
-        print("Failed to send message to Jandi. Error:", response.text)    
+        print("Failed to send message to Jandi. Error:", response.text)   
 
 def replace_names(members):
     names = [member['first_name'] + ' ' + member['last_name'] for member in members]
-    
     updated_names = []
     for name in names:
         updated_name = name_replacements.get(name, name)
@@ -100,23 +101,23 @@ def format_challenge(challenge_area):
         "creative": "💡 Creative Challenge",
         "personal_growth": "🌱 Personal Growth Challenge",
     }
-    formatted_challenge = challenge.get(challenge_area, challenge_area)
+    challenge_replace = challenge.get(challenge_area, challenge_area)
 
-    return formatted_challenge
+    return challenge_replace
 
 def fancify_leads(leader_names):
     if len(leader_names) > 0:
-        lead_string = "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names))
+        lead_join = "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names))
     else:
-        lead_string = "No designated leader"
-    return lead_string
+        lead_join = "No designated leader"
+    return lead_join
 
 def fancify_assists(assistant_names):
     if len(assistant_names) > 0:
-        assistant_string = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
+        assistant_join = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
     else:
-        assistant_string = "No designated assistant"
-    return assistant_string
+        assistant_join = "No designated assistant"
+    return assistant_join
 
 def locationw3w(loc_string):
     def find_possible_3wa(text):
@@ -129,22 +130,21 @@ def locationw3w(loc_string):
 
     if possible:
         try:
-            json = api.autosuggest(possible[0])
+            api_response = api.autosuggest(possible[0])
         except:
             loc_string = loc_string.replace(possible[0], "(what3words error)")
             return loc_string
-        markdown_link = f"[///{json['suggestions'][0]['words']}](https://w3w.co/{json['suggestions'][0]['words']})"
-        if json['suggestions'][0]['country'] == 'AU':
-            w3w_nearest = f"{markdown_link} (near {json['suggestions'][0]['nearestPlace']})"
+        markdown_link = f"[///{api_response['suggestions'][0]['words']}](https://w3w.co/{json['suggestions'][0]['words']})"
+        if api_response['suggestions'][0]['country'] == 'AU':
+            w3w_nearest = f"{markdown_link} (near {api_response['suggestions'][0]['nearestPlace']})"
         else:
-            w3w_nearest = f"{markdown_link} (near {json['suggestions'][0]['nearestPlace']} - this may be incorrect!)"
+            w3w_nearest = f"{markdown_link} (near {api_response['suggestions'][0]['nearestPlace']} - this may be incorrect!)"
         loc_string = loc_string.replace("///", "")
         loc_string = loc_string.replace(possible[0], w3w_nearest)
 
     return loc_string
 
-filename = 'config.json'
-filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 
 with open(filepath) as config:
     config = json.load(config)
