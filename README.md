@@ -1,28 +1,14 @@
 # Calendar
 
-## A Jandi-Terrain webhook integration
+## Scouts | Terrain -> JANDI incoming webhook integration
 
 ### Currently under redevelopment.
 
 ---
 
-**Do you use Jandi for your Scouting communications?**
+Calendar is a small Python script you can run as a daily cronjob. Given a login to Scouts | Terrain, it will find any events for the current day in a specified section that the account has access to, and post details on two JANDI topics.
 
-**Do you have a Scouts | Terrain account?**
-
-**Do you have a server to run Python scripts on?**
-
-**If you said yes to all three, you're in the right place.**
-
-If you didn't, but you know what you're doing, you can probably hack something together.
-
-Anyway, what's Pathfinder? It's a Python script that checks your Terrain calendar for events in your unit on the current day and, if there's something, it'll post information to Jandi via a webhook. Additionally, by specifying your weekly meeting day (such as Thursday, the default), the bot can confirm if there is no event in Terrain to users on Jandi.
-
-Please note: This is not a foolproof application. It does not handle errors well. It relies somewhat on humans not creating edge cases. Please do not rely on it. It's just a convenience.
-
-Having said that, please feel more than free to adapt it to other webhook integrations, create issues, pull requests, forks, etc. I'd love to see where it could go.
-
-Finally, the Scouts | Terrain API should not be abused. Don't waste a nonprofit's money and create issues for other users.
+See all features below.
 
 ## Dependencies
 
@@ -33,31 +19,35 @@ datetime
 pytz
 re
 what3words
+os
 ```
 
-## Variables
+## config.json
 
-`terrain_username` is your state, then a hyphen, then your member number. For example, `nsw-1234567`.
 
-`terrain_password` is your password for Terrain.
-
-`wh_url` is the URL you got for the webhook you set up in Jandi.
-
-`timezone` is your timezone (corrects for daylight saving). Default is Sydney.
-
-The weekday in line 108 starts at 0 (Monday) and goes to  (Sunday). This is the day on which the bot will tell you there's no meeting (if there should be one but isn't).
-
-The what3words API key in line 184 lets you use the what3words API to convert w3w addresses into clickable links (with a confirmation of the rough area).
-
-Note that it defaults to Venturer-section events but this can be changed fairly easily if you know what you're doing.
+| Key                  | Default value                | Description                                                                                                                                                               |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `terrain_username`   | `abc-123456`                 | Your state, then a hyphen, then your member number. For example, `nsw-1234567`.                                                                                           |
+| `terrain_password`   | `password`                   | Your password for Terrain.                                                                                                                                                |
+| `youth_wh_url`       | `https://wh.jandi.com/...`   | The URL for the webhook set up in JANDI for the youth members' topic.                                                                                                     |
+| `parent_wh_url`      | `https://wh.jandi.com/...`   | The URL for the webhook set up in JANDI for the parents' topic.                                                                                                           |
+| `timezone`           | `Australia/Sydney`           | Your timezone (corrects for daylight saving)                                                                                                                              |
+| `section`            | `venturer`                   | The Section you wish to notify. This will be `joey`, `cub`, `scout`, `venturer` or `rover`.                                                                               |
+| `meeting_weekday`    | `null`                       | The day of the week on which the bot will send a "No meeting tonight" message if there's no event. Monday is `0`, Sunday is `6`. `null` disables this feature.            |
+| `what3words_api_key` | `ABCDEFGH`                   | The API key from what3words. Requests are free and unlimited for this script.                                                                                             |
+| `name_replacements`  | `"John Smith": "Fred Smith"` | Replace a full name with another full name. Useful where a person's name in Terrain is not what they are usually called. This affects mentions of Leaders and Assistants. |
 
 ## Features
 
-Run the script every day at a designated time (use a cronjob like `0 9 * * *`)
+Sends a message (see sample output below) to the youth members' JANDI topic with full event details. 
 
-The webhook post includes the event title, location (converts any what3words locations to a clickable link), start/finish time, challenge area, description, and Leaders/Assistants.
+Sends a message to any parents' topic with concise details.
 
-On the designated weekday, if there is no regular meeting, the bot will communicate this.
+Makes any what3words addresses clickable and highlights where they are in normal terms. Also highlights when they may be incorrect (i.e. outside Australia)
+
+Only notifies of events starting on the current day in the specified timezone. Due to the way Terrain stores and retrieves events in UTC, there are known issues with this.
+
+There are more, documentation is coming soon...
 
 ## Example output
 
@@ -79,3 +69,10 @@ A day hike through the bush of Scout Campsite.
 **Assistants:** James Blue, Amanda White
 
 View on [Scouts | Terrain](terrain.scouts.com.au/programming)
+
+## To-do
+
+- Allow for what3words API bypass
+- Allow for parent topic bypass
+- Fix issues with overlapping events
+- Section also informs `connectColour`
