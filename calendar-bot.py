@@ -119,7 +119,7 @@ def fancify_assists(assistant_names):
         assistant_join = "No designated assistant"
     return assistant_join
 
-def locationw3w(loc_string):
+def location_append_w3w(loc_string):
     def find_possible_3wa(text):
         regex_search = "[^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}[.｡。･・︒។։။۔።।][^0-9`~!@#$%^&*()+\-_=[{\]}\\|'<,.>?/\";:£§º©®\s]{1,}"
         return re.findall(regex_search, text, flags=re.UNICODE)
@@ -203,7 +203,7 @@ if start_datetime_local.date() != datetime.now(local_timezone).date():
 
 title = event_info['title']
 
-location = locationw3w(event_info['location'])
+location = location_append_w3w(event_info['location'])
 
 formatted_challenge = format_challenge(event_info['challenge_area'])
 
