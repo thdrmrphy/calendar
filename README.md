@@ -10,6 +10,8 @@ Calendar is a small Python script you can run as a daily cronjob. Given a login 
 
 See all features below.
 
+The base of this code is from [aiden2480/crest](https://github.com/aiden2480/crest) back when it was written in Python. This wouldn't exist if it weren't for that project!
+
 ## Dependencies
 
 ```
