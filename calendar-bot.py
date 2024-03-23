@@ -63,7 +63,7 @@ def message_none(wh_url, terrain_mention):
         }
     else:
         content = {
-            "body": f"No {section_fancy} meeting tonight, according to our online calendar.\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
+            "body": f"**No {section_fancy} meeting tonight, according to our online calendar.**\n\n*Note: If it's term-time, this may be wrong. Please refer to any amendments below.*",
         }
     data = json.dumps(content)
     response = requests.post(wh_url, headers=headers, data=data)
@@ -143,9 +143,8 @@ def locationw3w(loc_string):
 
     return loc_string
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
 filename = 'config.json'
-filepath = os.path.join(script_dir, filename)
+filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
 with open(filepath) as config:
     config = json.load(config)
