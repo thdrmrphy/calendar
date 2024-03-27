@@ -77,4 +77,5 @@ View on [Scouts | Terrain](terrain.scouts.com.au/programming)
 - Allow for what3words API bypass
 - Allow for parent topic bypass
 - Fix issues with overlapping events
-- Section also informs `connectColour`
+- Section also informs `connectColor`
+- Error handling for no events in JSON response but 200 OK
