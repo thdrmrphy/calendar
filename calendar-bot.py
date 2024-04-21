@@ -149,15 +149,18 @@ filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json
 with open(filepath) as config:
     config = json.load(config)
 
-terrain_username = config['terrain_username']
-terrain_password = config['terrain_password']
-youth_wh_url = config['youth_wh_url']
-parent_wh_url = config['parent_wh_url']
-local_timezone = config['timezone']
-section = config['section']
-meeting_weekday = config['meeting_weekday']
-what3words_api_key = config['what3words_api_key']
-name_replacements = config['name_replacements']
+try:
+    terrain_username = config['terrain_username']
+    terrain_password = config['terrain_password']
+    youth_wh_url = config['youth_wh_url']
+    parent_wh_url = config['parent_wh_url']
+    local_timezone = config['timezone']
+    section = config['section']
+    meeting_weekday = config['meeting_weekday']
+    what3words_api_key = config['what3words_api_key']
+    name_replacements = config['name_replacements']
+except KeyError as e:
+    print(f"Configuration error: {e} is missing in the configuration.")
 
 section_names = {
     "joey": "Joey Scout",
