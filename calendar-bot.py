@@ -45,10 +45,8 @@ def get_member_id(connection: requests.Session) -> str:
     return member_data["profiles"][0]["member"]["id"]
 
 def get_events(connection: requests.Session, member: str) -> list:
-    start_datetime = datetime.now().date() - timedelta(days=1)
-    end_datetime = datetime.now().date() + timedelta(days=1)
-    start_datetime = start_datetime.isoformat()
-    end_datetime = end_datetime.isoformat()
+    start_datetime = (datetime.now().date() - timedelta(days=1)).isoformat()
+    end_datetime = (datetime.now().date() + timedelta(days=1)).isoformat()
     url = f"https://events.terrain.scouts.com.au/members/{member}/events?start_datetime={start_datetime}&end_datetime={end_datetime}"
     event_data = connection.get(url).json()
     return event_data
