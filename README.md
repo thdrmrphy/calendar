@@ -53,24 +53,17 @@ There are more, documentation is coming soon...
 
 ## Example output
 
-**Upcoming event from Scouts | Terrain**
+Youth see:
 
-Bushwalk
+![DragonSkin 2024](https://github.com/thdrmrphy/calendar/assets/130824397/beee215f-acb9-4ae0-af38-49442b1b0f7e)
 
-📍 Scout Campsite [///sizes.junior.unwell](https://w3w.co/sizes.junior.unwell) (near Merewether Heights, New South Wales)
+Parents see:
 
-🕒 9:00 AM - 3:00 PM
+![Parent version](https://github.com/thdrmrphy/calendar/assets/130824397/9a537341-f5d3-4719-8647-159494658120)
 
-🌱 Personal Growth Challenge
+Another example:
 
-
-A day hike through the bush of Scout Campsite.
-
-**Leader:** John Smith
-
-**Assistants:** James Blue, Amanda White
-
-View on [Scouts | Terrain](terrain.scouts.com.au/programming)
+![Excuse the bread](https://github.com/thdrmrphy/calendar/assets/130824397/17697d85-9464-4a7a-a193-977b5f53ef9e)
 
 ## To-do
 

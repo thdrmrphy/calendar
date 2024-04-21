@@ -188,7 +188,7 @@ def send_message(event_id):
         "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
-            "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}\n\n{lead_string}\n\n{assistant_string}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
+            "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}\n\n{lead_string}\n{assistant_string}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
         }]
     }
 
