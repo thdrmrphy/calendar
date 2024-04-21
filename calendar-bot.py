@@ -257,7 +257,7 @@ if not 'results' in event_list:
     quit()
 elif not event_list['results']:
     print("No events returned.")
-    quit()
+    event_today = False
 else:
     print(json.dumps(event_list))
     event_today = False
