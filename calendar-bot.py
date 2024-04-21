@@ -185,7 +185,7 @@ def send_message(event_id):
 
     youth_message_content = {
         "body": "Upcoming event from Scouts | Terrain",
-        "connectColor": "#99002b",
+        "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
             "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}\n\n{lead_string}\n\n{assistant_string}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
@@ -194,7 +194,7 @@ def send_message(event_id):
 
     parent_message_content = {
         "body": f"Upcoming event for {section_full_name}s",
-        "connectColor": "#99002b",
+        "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
             "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}"
@@ -239,6 +239,15 @@ section_names = {
     "rover": "Rover Scout"
 }
 section_full_name = section_names.get(section, section)
+
+section_colours = {
+    "joey": "#b86125",
+    "cub": "#ffc72c",
+    "scout": "#00b140",
+    "venturer": "#9d2235",
+    "rover": "#da291c"
+}
+section_colour = section_colours.get(section, section)
 
 session = generate_session(terrain_username, terrain_password)
 event_list = get_events(session, get_member_id(session))
