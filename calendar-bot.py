@@ -131,14 +131,18 @@ def location_append_w3w(loc_string):
     if possible:
         try:
             api_response = api.autosuggest(possible[0])
+            print("what3words API response:\n" + json.dumps(api_response))
         except:
             loc_string = loc_string.replace(possible[0], "(what3words error)")
             return loc_string
-        markdown_link = f"[///{api_response['suggestions'][0]['words']}](https://w3w.co/{json['suggestions'][0]['words']})"
+        
+        markdown_link = f"[///{api_response['suggestions'][0]['words']}](https://w3w.co/{api_response['suggestions'][0]['words']})"
+
         if api_response['suggestions'][0]['country'] == 'AU':
             w3w_nearest = f"{markdown_link} (near {api_response['suggestions'][0]['nearestPlace']})"
         else:
             w3w_nearest = f"{markdown_link} (near {api_response['suggestions'][0]['nearestPlace']} - this may be incorrect!)"
+        
         loc_string = loc_string.replace("///", "")
         loc_string = loc_string.replace(possible[0], w3w_nearest)
 
