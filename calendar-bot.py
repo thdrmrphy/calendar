@@ -100,7 +100,7 @@ def format_challenge(challenge_area):
         "outdoors": "🏕️ Outdoor Challenge",
         "creative": "💡 Creative Challenge",
         "personal_growth": "🌱 Personal Growth Challenge",
-        "not_applicable": "Does not count towards Milestones"
+        "not_applicable": "🙈 This event does not count towards Milestones"
     }
     challenge_replace = challenge.get(challenge_area, challenge_area)
 
