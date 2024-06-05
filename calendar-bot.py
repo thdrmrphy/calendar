@@ -107,18 +107,14 @@ def format_challenge(challenge_area):
     return challenge_replace
 
 def fancify_leads(leader_names):
-    if len(leader_names) > 0:
-        lead_join = "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names))
-    else:
-        lead_join = "No designated leader"
-    return lead_join
+    if leader_names:
+        return "**Lead{}:** {}".format("s" if len(leader_names) > 1 else "", ", ".join(leader_names)) + "\n"
+    return ""
 
 def fancify_assists(assistant_names):
-    if len(assistant_names) > 0:
-        assistant_join = "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names))
-    else:
-        assistant_join = "No designated assistant"
-    return assistant_join
+    if assistant_names:
+        return "**Assistant{}:** {}".format("s" if len(assistant_names) > 1 else "", ", ".join(assistant_names)) + "\n"
+    return ""
 
 def location_append_w3w(loc_string):
     def find_possible_3wa(text):
@@ -188,12 +184,16 @@ def send_message(event_id):
     lead_string = fancify_leads(replace_names(event_info['attendance']['leader_members']))
     assistant_string = fancify_assists(replace_names(event_info['attendance']['assistant_members']))
 
+    lead_assistant_string = ""
+    if lead_string or assistant_string:
+        lead_assistant_string = f"\n\n{lead_string}{assistant_string}"
+
     youth_message_content = {
         "body": "Upcoming event from Scouts | Terrain",
         "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
-            "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}\n\n{lead_string}\n{assistant_string}\n\nView on [Scouts | Terrain](terrain.scouts.com.au/programming)"
+            "description": f"📍 {location}\n🕒 {formatted_start_time} - {formatted_end_time}\n{formatted_challenge}\n\n{description}{lead_assistant_string}"
         }]
     }
 
