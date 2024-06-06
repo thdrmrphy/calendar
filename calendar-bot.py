@@ -49,6 +49,7 @@ def get_events(connection: requests.Session, member: str) -> list:
     end_datetime = (datetime.now().date() + timedelta(days=1)).isoformat()
     url = f"https://events.terrain.scouts.com.au/members/{member}/events?start_datetime={start_datetime}T00:00:00&end_datetime={end_datetime}T23:59:59"
     event_data = connection.get(url).json()
+    event_data["results"] = sorted(event_data["results"], key=lambda x: datetime.fromisoformat(x["start_datetime"]))
     return event_data
 
 @lru_cache(maxsize=None)
