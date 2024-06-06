@@ -268,7 +268,7 @@ else:
     event_today = False
 
 for event in event_list['results']:
-    if event['section'] == f'{section}' and event['invitee_type'] == 'unit' and event_date_filter(event['start_datetime']):
+    if event['section'] in [f'{section}', ''] and event['invitee_type'] in ['unit', 'group'] and event_date_filter(event['start_datetime']):
         event_today = True
         event_id = event['id']
         print(event_id)
