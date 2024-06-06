@@ -76,5 +76,3 @@ Another example:
 
 - Allow for what3words API bypass
 - Allow for parent topic bypass
-- Remove Scouts | Terrain link (cleanup)
-- Remove Leads/Assists when not designated (cleanup)
