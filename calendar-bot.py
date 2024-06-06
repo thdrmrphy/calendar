@@ -181,6 +181,13 @@ def send_message(event_id):
         description = event_info['description']
     else: description = "No description given"
 
+    if event_info['invitees'][0]['invitee_type'] == 'unit':
+        body_message = f"Upcoming event for {section_full_name}s"
+    elif event_info['invitees'][0]['invitee_type'] == 'group':
+        body_message = f"Upcoming event for {event_info['invitees'][0]['invitee_name']}"
+    else:
+        body_message = "Upcoming event... relevance unknown"
+
     lead_string = fancify_leads(replace_names(event_info['attendance']['leader_members']))
     assistant_string = fancify_assists(replace_names(event_info['attendance']['assistant_members']))
 
@@ -189,7 +196,7 @@ def send_message(event_id):
         lead_assistant_string = f"\n\n{lead_string}{assistant_string}"
 
     youth_message_content = {
-        "body": "Upcoming event from Scouts | Terrain",
+        "body": body_message,
         "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
@@ -198,7 +205,7 @@ def send_message(event_id):
     }
 
     parent_message_content = {
-        "body": f"Upcoming event for {section_full_name}s",
+        "body": body_message,
         "connectColor": f"{section_colour}",
         "connectInfo": [{
             "title": title,
