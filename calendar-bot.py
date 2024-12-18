@@ -62,7 +62,7 @@ def jandi_none(wh_url, terrain_mention):
     headers = {'Content-Type': 'application/json'}
     if terrain_mention:
         content = {
-            "body": "No meeting tonight, according to [Scouts | Terrain](terrain.scouts.com.au/programming)",
+            "body": "No meeting tonight, according to Scouts | Terrain.",
         }
     else:
         content = {
